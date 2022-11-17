@@ -13,10 +13,16 @@ export type MusicData = {
 };
 
 const createMusicData = async (filename: string) => {
-  const metadata = await parseFile(`${appConfig.audioDir}/${filename}`);
-  const fileUri = Buffer.from(filename).toString('base64url');
-  const uri = `${getStaticBaseUrl()}/${fileUri}`;
-  return { filename, uri, path: fileUri, metadata } as MusicData;
+  try {
+    const metadata = await parseFile(`${appConfig.audioDir}/${filename}`);
+    const fileUri = Buffer.from(filename).toString('base64url');
+    const uri = `${getStaticBaseUrl()}/${fileUri}`;
+    return { filename, uri, path: fileUri, metadata } as MusicData;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log('err', filename, err);
+    return null;
+  }
 };
 
 const getFiles = async (basePath: string, dir = '', files?: string[]) => {
@@ -45,7 +51,8 @@ const getList = async () => {
 
   const files = await getFiles(appConfig.audioDir);
   const items = files.filter((i) => i.endsWith('.mp3')).map(createMusicData);
-  return Promise.all(items);
+  const result = await Promise.all(items);
+  return result.filter((i) => i != null);
 };
 
 const deleteMusic = async (fpath: string) => {

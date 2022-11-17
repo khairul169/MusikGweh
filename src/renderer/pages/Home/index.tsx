@@ -1,11 +1,18 @@
 /* eslint-disable no-console */
 import { useEffect, useMemo, useState } from 'react';
-import { FaSearch, FaTimes, FaMusic, FaTrash } from 'react-icons/fa';
+import {
+  FaSearch,
+  FaTimes,
+  FaMusic,
+  FaTrash,
+  FaDownload,
+} from 'react-icons/fa';
 import { filterTrackList, mapTrackData, TrackData } from 'renderer/utils';
 import MusicPlayer from 'renderer/components/MusicPlayer';
 import { useMusicPlayer } from 'renderer/context/MusicPlayerContext';
 import MenuButton from 'renderer/components/MenuButton';
 import DeleteModal from './DeleteModal';
+import DownloadModal from './DownloadModal';
 
 type ModalDeleteTrackData = {
   isOpen: boolean;
@@ -16,6 +23,7 @@ const Home = () => {
   const { track, play } = useMusicPlayer();
   const [musicList, setMusicList] = useState<TrackData[]>([]);
   const [search, setSearch] = useState('');
+  const [modalDownload, setModalDownload] = useState(false);
   const [modalDeleteTrack, setModalDeleteTrack] =
     useState<ModalDeleteTrackData>({
       isOpen: false,
@@ -44,7 +52,6 @@ const Home = () => {
 
   const onDeleteTrack = async (trackData: TrackData) => {
     const success = await window.app.music.deleteMusic(trackData.path);
-    console.log('success', success);
     if (success) {
       getMusicList();
     }
@@ -64,7 +71,7 @@ const Home = () => {
           <FaSearch className="absolute left-3 top-[13px]" />
           <input
             type="text"
-            className="border border-slate-500 bg-slate-800 rounded outline-none py-2 px-10 w-60"
+            className="border border-slate-500 bg-slate-800 rounded outline-none h-10 px-10 w-60 text-sm"
             placeholder="Cari..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -79,6 +86,15 @@ const Home = () => {
             </button>
           ) : null}
         </div>
+
+        <button
+          type="button"
+          className="border border-slate-500 bg-slate-800 hover:bg-slate-700 transition-colors text-sm rounded outline-none h-10 px-3 ml-2 flex items-center"
+          onClick={() => setModalDownload(true)}
+        >
+          <FaDownload className="mr-2" />
+          Download
+        </button>
       </div>
       <div className="flex-1 overflow-y-auto px-4 pb-5">
         {musicFiltered.map((music) => (
@@ -124,6 +140,15 @@ const Home = () => {
       </div>
 
       <MusicPlayer />
+
+      <DownloadModal
+        isOpen={modalDownload}
+        onClose={() => setModalDownload(false)}
+        onComplete={(result?: string) => {
+          getMusicList();
+          setSearch(typeof result === 'string' ? result : '');
+        }}
+      />
 
       <DeleteModal
         isOpen={modalDeleteTrack.isOpen}

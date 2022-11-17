@@ -1,37 +1,13 @@
 {
-  "description": "A foundation for scalable desktop apps",
-  "keywords": [
-    "electron",
-    "boilerplate",
-    "react",
-    "typescript",
-    "ts",
-    "sass",
-    "webpack",
-    "hot",
-    "reload"
-  ],
-  "homepage": "https://github.com/electron-react-boilerplate/electron-react-boilerplate#readme",
-  "bugs": {
-    "url": "https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/electron-react-boilerplate/electron-react-boilerplate.git"
-  },
+  "name": "musikgweh",
+  "version": "1.0.0",
+  "description": "Music Player made with Electron, ReactJs, & Nodejs using ytdl-core and ffmpeg.",
   "license": "MIT",
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://electron-react-boilerplate.js.org"
+    "name": "Khairul Hidayat",
+    "email": "me@khairul.my.id",
+    "url": "https://github.com/khairul169/MusikGweh"
   },
-  "contributors": [
-    {
-      "name": "Amila Welihinda",
-      "email": "amilajack@gmail.com",
-      "url": "https://github.com/amilajack"
-    }
-  ],
   "main": "./src/main/main.ts",
   "scripts": {
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
@@ -113,12 +89,16 @@
     "electron-log": "^4.4.8",
     "electron-updater": "^5.2.3",
     "express": "^4.18.2",
+    "ffmpeg-static": "^5.1.0",
+    "fluent-ffmpeg": "^2.1.2",
     "music-metadata": "7.13.0",
+    "node-fetch": "2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-h5-audio-player": "^3.8.6",
     "react-icons": "^4.6.0",
-    "react-router-dom": "^6.3.0"
+    "react-router-dom": "^6.3.0",
+    "ytdl-core": "^4.11.2"
   },
   "devDependencies": {
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
@@ -126,8 +106,10 @@
     "@teamsupercell/typings-for-css-modules-loader": "^2.5.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.3.0",
+    "@types/fluent-ffmpeg": "^2.1.20",
     "@types/jest": "^28.1.7",
     "@types/node": "18.7.6",
+    "@types/node-fetch": "^2.6.2",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "@types/react-test-renderer": "^18.0.0",
@@ -195,12 +177,13 @@
     "productName": "MusikGweh",
     "appId": "id.my.khairul.musikgweh",
     "asar": true,
-    "asarUnpack": "**\\*.{node,dll}",
+    "asarUnpack": [
+      "**\\*.{node,dll}"
+    ],
     "files": [
       "dist",
       "node_modules",
-      "package.json",
-      "!config.json"
+      "package.json"
     ],
     "afterSign": ".erb/scripts/notarize.js",
     "mac": {
@@ -248,13 +231,9 @@
       "output": "release/build"
     },
     "extraResources": [
-      "./assets/**"
-    ],
-    "publish": {
-      "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate"
-    }
+      "./assets/**",
+      "node_modules\\ffmpeg-static\\ffmpeg.exe"
+    ]
   },
   "collective": {
     "url": "https://opencollective.com/electron-react-boilerplate-594"

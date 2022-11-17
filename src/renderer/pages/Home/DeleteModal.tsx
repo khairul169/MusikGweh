@@ -1,3 +1,4 @@
+import React from 'react';
 import Modal from 'renderer/components/Modal';
 import { TrackData } from 'renderer/utils';
 
@@ -29,4 +30,4 @@ DeleteModal.defaultProps = {
   track: null,
 };
 
-export default DeleteModal;
+export default React.memo(DeleteModal);
