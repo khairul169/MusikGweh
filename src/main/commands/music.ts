@@ -3,10 +3,11 @@ import fs from 'fs/promises';
 import path from 'path';
 import { parseFile, IAudioMetadata } from 'music-metadata';
 import { getStaticBaseUrl } from '../static-file';
-import { appConfig, getFilename } from '../util';
+import { appConfig } from '../util';
 
 export type MusicData = {
   filename: string;
+  path: string;
   uri: string;
   metadata: IAudioMetadata;
 };
@@ -15,7 +16,7 @@ const createMusicData = async (filename: string) => {
   const metadata = await parseFile(`${appConfig.audioDir}/${filename}`);
   const fileUri = Buffer.from(filename).toString('base64url');
   const uri = `${getStaticBaseUrl()}/${fileUri}`;
-  return { filename, uri, metadata } as MusicData;
+  return { filename, uri, path: fileUri, metadata } as MusicData;
 };
 
 const getFiles = async (basePath: string, dir = '', files?: string[]) => {
@@ -47,6 +48,22 @@ const getList = async () => {
   return Promise.all(items);
 };
 
-const music = { getList };
+const deleteMusic = async (fpath: string) => {
+  if (!appConfig.audioDir) {
+    return false;
+  }
+
+  try {
+    let filePath = Buffer.from(fpath, 'base64url').toString('utf-8');
+    filePath = path.join(appConfig.audioDir, filePath);
+    await fs.unlink(filePath);
+
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+const music = { getList, deleteMusic };
 
 export default music;

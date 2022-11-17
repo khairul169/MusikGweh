@@ -8,6 +8,7 @@ declare global {
       };
       music: {
         getList(): Promise<MusicData[]>;
+        deleteMusic(uri: string): Promise<boolean>;
       };
     };
   }

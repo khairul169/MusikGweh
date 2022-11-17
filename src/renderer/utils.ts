@@ -23,6 +23,7 @@ export const arrayBufferBase64 = async (data?: Buffer, mimeType?: string) => {
 
 export type TrackData = {
   uri: string;
+  path: string;
   filename: string;
   title: string;
   cover?: string;
@@ -38,6 +39,7 @@ export const mapTrackData = async (music: MusicData) => {
 
   return {
     uri: music.uri,
+    path: music.path,
     filename: music.filename,
     title: getAudioName(music),
     cover: coverImg,
@@ -46,4 +48,18 @@ export const mapTrackData = async (music: MusicData) => {
 
 export const getFilename = (filepath: string) => {
   return filepath.split('/').pop() || '';
+};
+
+export const filterTrackList = (items: TrackData[], search: string) => {
+  return items
+    .map((i, index) => ({ ...i, index }))
+    .filter((i) => {
+      const keyword = search.toLowerCase();
+      const filename = i.filename.toLowerCase();
+      const title = i.title.toLowerCase();
+      return title.includes(keyword) || filename.includes(keyword);
+    })
+    .sort((a, b) => {
+      return getFilename(a.title).localeCompare(getFilename(b.title));
+    });
 };

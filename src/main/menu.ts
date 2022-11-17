@@ -80,7 +80,7 @@ export default class MenuBuilder {
               }
               const dir = filePaths[0];
               setAppConfig({ audioDir: dir });
-              this.mainWindow.webContents.send('audiodir-changed');
+              this.mainWindow.webContents.send('refresh-music');
             },
           },
           {

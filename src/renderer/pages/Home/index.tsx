@@ -1,20 +1,34 @@
+/* eslint-disable no-console */
 import { useEffect, useMemo, useState } from 'react';
-import { FaSearch, FaTimes, FaMusic } from 'react-icons/fa';
-import AudioPlayer from 'react-h5-audio-player';
-import { getFilename, mapTrackData, TrackData } from 'renderer/utils';
+import { FaSearch, FaTimes, FaMusic, FaTrash } from 'react-icons/fa';
+import { filterTrackList, mapTrackData, TrackData } from 'renderer/utils';
+import MusicPlayer from 'renderer/components/MusicPlayer';
+import { useMusicPlayer } from 'renderer/context/MusicPlayerContext';
+import MenuButton from 'renderer/components/MenuButton';
+import DeleteModal from './DeleteModal';
+
+type ModalDeleteTrackData = {
+  isOpen: boolean;
+  track?: TrackData;
+};
 
 const Home = () => {
+  const { track, play } = useMusicPlayer();
   const [musicList, setMusicList] = useState<TrackData[]>([]);
-  const [track, setTrack] = useState<number>();
   const [search, setSearch] = useState('');
+  const [modalDeleteTrack, setModalDeleteTrack] =
+    useState<ModalDeleteTrackData>({
+      isOpen: false,
+    });
 
   const getMusicList = async () => {
+    console.log('fetching music list...');
+
     try {
       const result = await window.app.music.getList();
       const items = await Promise.all(result.map(mapTrackData));
       setMusicList(items);
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.log('Failed fetching music list...', err);
     }
   };
@@ -25,34 +39,21 @@ const Home = () => {
   }, []);
 
   const onTrackSelect = (idx: number) => {
-    setTrack(idx);
+    play(musicList, idx);
   };
 
-  const onTrackPrev = () => {
-    if (track != null && track > 0) setTrack(track - 1);
+  const onDeleteTrack = async (trackData: TrackData) => {
+    const success = await window.app.music.deleteMusic(trackData.path);
+    console.log('success', success);
+    if (success) {
+      getMusicList();
+    }
   };
 
-  const onTrackNext = () => {
-    if (track != null && track < musicList.length - 1) setTrack(track + 1);
-  };
-
-  const musicFiltered = useMemo(() => {
-    return musicList
-      .map((i, index) => ({ ...i, index }))
-      .filter((i) => {
-        const keyword = search.toLowerCase();
-        const filename = i.filename.toLowerCase();
-        const title = i.title.toLowerCase();
-        return title.includes(keyword) || filename.includes(keyword);
-      })
-      .sort((a, b) => {
-        return getFilename(a.title).localeCompare(getFilename(b.title));
-      });
-  }, [musicList, search]);
-
-  const currentTrack = useMemo(() => {
-    return track != null ? musicList[track] : null;
-  }, [musicList, track]);
+  const musicFiltered = useMemo(
+    () => filterTrackList(musicList, search),
+    [musicList, search]
+  );
 
   return (
     <div className="h-[100vh] flex flex-col overflow-hidden bg-slate-800 text-white">
@@ -102,35 +103,40 @@ const Home = () => {
               )}
             </div>
             <p className="flex-1 truncate">{music.title}</p>
+            <MenuButton
+              className="mr-2"
+              items={[
+                {
+                  icon: FaTrash,
+                  title: 'Hapus',
+                  onClick: () => {
+                    setModalDeleteTrack((state) => ({
+                      ...state,
+                      isOpen: true,
+                      track: music,
+                    }));
+                  },
+                },
+              ]}
+            />
           </button>
         ))}
       </div>
 
-      <div className="bg-slate-700 flex items-center shadow-xl">
-        {currentTrack?.cover ? (
-          <img
-            src={currentTrack?.cover}
-            alt="cover"
-            className="w-[114px] ml-3"
-          />
-        ) : null}
+      <MusicPlayer />
 
-        <AudioPlayer
-          autoPlay
-          src={currentTrack?.uri}
-          header={
-            <div className="text-white">
-              <p className="mb-2 mt-3">{currentTrack?.title || '-'}</p>
-            </div>
+      <DeleteModal
+        isOpen={modalDeleteTrack.isOpen}
+        track={modalDeleteTrack.track}
+        onClose={() => {
+          setModalDeleteTrack((state) => ({ ...state, isOpen: false }));
+        }}
+        onConfirm={() => {
+          if (modalDeleteTrack.track) {
+            onDeleteTrack(modalDeleteTrack.track);
           }
-          showJumpControls={false}
-          showSkipControls
-          onClickPrevious={onTrackPrev}
-          onClickNext={onTrackNext}
-          onEnded={onTrackNext}
-          hasDefaultKeyBindings={false}
-        />
-      </div>
+        }}
+      />
     </div>
   );
 };
