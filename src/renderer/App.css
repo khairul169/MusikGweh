@@ -1,62 +1,65 @@
-/*
- * @NOTE: Prepend a `~` to css file paths that are in your node_modules
- *        See https://github.com/webpack-contrib/sass-loader#imports
- */
-body {
-  position: relative;
-  color: white;
-  height: 100vh;
-  background: linear-gradient(
-    200.96deg,
-    #fedc2a -29.09%,
-    #dd5789 51.77%,
-    #7a2c9e 129.35%
-  );
-  font-family: sans-serif;
-  overflow-y: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-button {
+  width: 0px;
+  height: 0px;
+}
+::-webkit-scrollbar-thumb {
+  background: #56649f;
+  border: 0px none #ffffff;
+  border-radius: 50px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #697abf;
+}
+::-webkit-scrollbar-thumb:active {
+  background: #46548b;
+}
+::-webkit-scrollbar-track {
+  background: #383f5c;
+  border: 0px none #ffffff;
+  border-radius: 50px;
+}
+::-webkit-scrollbar-track:hover {
+  background: #4f587d;
+}
+::-webkit-scrollbar-track:active {
+  background: #363f63;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
-button {
-  background-color: white;
-  padding: 10px 20px;
-  border-radius: 10px;
-  border: none;
-  appearance: none;
-  font-size: 1.3rem;
-  box-shadow: 0px 8px 28px -6px rgba(24, 39, 75, 0.12),
-    0px 18px 88px -4px rgba(24, 39, 75, 0.14);
-  transition: all ease-in 0.1s;
-  cursor: pointer;
-  opacity: 0.9;
+/* audio player */
+.rhap_container {
+  @apply bg-slate-700 px-5 py-3 shadow-none;
 }
 
-button:hover {
-  transform: scale(1.05);
-  opacity: 1;
+.rhap_time {
+  @apply text-white;
 }
 
-li {
-  list-style: none;
+.rhap_volume-button,
+.rhap_repeat-button,
+.rhap_main-controls-button {
+  @apply text-white;
 }
 
-a {
-  text-decoration: none;
-  height: fit-content;
-  width: fit-content;
-  margin: 10px;
+.rhap_progress-bar,
+.rhap_download-progress {
+  @apply bg-slate-300;
 }
 
-a:hover {
-  opacity: 1;
-  text-decoration: none;
+.rhap_progress-filled {
+  @apply bg-slate-400;
 }
 
-.Hello {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 20px 0;
+.rhap_progress-indicator {
+  @apply bg-slate-500;
 }
