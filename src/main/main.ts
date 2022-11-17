@@ -9,23 +9,25 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell } from 'electron';
-import { autoUpdater } from 'electron-updater';
-import log from 'electron-log';
+import { app, BrowserWindow, Menu, shell, Tray } from 'electron';
+// import { autoUpdater } from 'electron-updater';
+// import log from 'electron-log';
 import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';
+import { loadAppConfig, resolveHtmlPath } from './util';
 import initCommands from './commands';
-import initExpress from './express';
+import initStaticFiles from './static-file';
 
-class AppUpdater {
-  constructor() {
-    log.transports.file.level = 'info';
-    autoUpdater.logger = log;
-    autoUpdater.checkForUpdatesAndNotify();
-  }
-}
+// class AppUpdater {
+//   constructor() {
+//     log.transports.file.level = 'info';
+//     autoUpdater.logger = log;
+//     autoUpdater.checkForUpdatesAndNotify();
+//   }
+// }
 
 let mainWindow: BrowserWindow | null = null;
+let isQuiting = false;
+let tray: Tray | null = null;
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -52,6 +54,15 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 
+const onAppQuit = () => {
+  isQuiting = true;
+  app.quit();
+};
+
+app.on('before-quit', () => {
+  isQuiting = true;
+});
+
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
@@ -65,12 +76,32 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
+  tray = new Tray(getAssetPath('icon.png'));
+  tray.on('click', () => {
+    mainWindow?.show();
+  });
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      {
+        label: 'Show App',
+        click() {
+          mainWindow?.show();
+        },
+      },
+      {
+        label: 'Quit',
+        click: onAppQuit,
+      },
+    ])
+  );
+
   mainWindow = new BrowserWindow({
     show: false,
     width: 1024,
     height: 728,
     icon: getAssetPath('icon.png'),
     webPreferences: {
+      // devTools: false,
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
@@ -90,11 +121,20 @@ const createWindow = async () => {
     }
   });
 
+  mainWindow.on('close', (event) => {
+    if (!isQuiting) {
+      event.preventDefault();
+      mainWindow?.hide();
+    }
+
+    return false;
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 
-  const menuBuilder = new MenuBuilder(mainWindow);
+  const menuBuilder = new MenuBuilder(mainWindow, onAppQuit);
   menuBuilder.buildMenu();
 
   // Open urls in the user's browser
@@ -105,7 +145,7 @@ const createWindow = async () => {
 
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
-  new AppUpdater();
+  // new AppUpdater();
 };
 
 /**
@@ -120,11 +160,12 @@ app.on('window-all-closed', () => {
   }
 });
 
-initExpress();
+const init = async () => {
+  try {
+    await app.whenReady();
 
-app
-  .whenReady()
-  .then(() => {
+    loadAppConfig();
+    initStaticFiles();
     createWindow();
     initCommands();
 
@@ -133,5 +174,9 @@ app
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) createWindow();
     });
-  })
-  .catch(console.log);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+init();

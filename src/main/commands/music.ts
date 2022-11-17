@@ -1,23 +1,50 @@
 /* eslint-disable import/prefer-default-export */
 import fs from 'fs/promises';
+import path from 'path';
 import { parseFile, IAudioMetadata } from 'music-metadata';
-import { MUSIC_DIR } from '../consts';
+import { getStaticBaseUrl } from '../static-file';
+import { appConfig, getFilename } from '../util';
 
 export type MusicData = {
   filename: string;
+  uri: string;
   metadata: IAudioMetadata;
 };
 
+const createMusicData = async (filename: string) => {
+  const metadata = await parseFile(`${appConfig.audioDir}/${filename}`);
+  const fileUri = Buffer.from(filename).toString('base64url');
+  const uri = `${getStaticBaseUrl()}/${fileUri}`;
+  return { filename, uri, metadata } as MusicData;
+};
+
+const getFiles = async (basePath: string, dir = '', files?: string[]) => {
+  const tmpFiles = files || [];
+  const dirFiles = await fs.readdir(basePath, { encoding: 'utf-8' });
+
+  const maps = dirFiles.map(async (file) => {
+    const subDir = path.join(basePath, '/', file);
+    const stats = await fs.lstat(subDir);
+
+    if (stats.isDirectory()) {
+      await getFiles(subDir, `${dir}${file}/`, tmpFiles);
+    } else {
+      tmpFiles.push(dir + file);
+    }
+  });
+
+  await Promise.all(maps);
+  return tmpFiles;
+};
+
 const getList = async () => {
-  const files = await fs.readdir(MUSIC_DIR);
-  const filesMap = files
-    .filter((i) => i.endsWith('.mp3'))
-    .map(async (i) => {
-      const metadata = await parseFile(`${MUSIC_DIR}/${i}`);
-      return { filename: i, metadata } as MusicData;
-    });
-  const musicList = await Promise.all(filesMap);
-  return musicList;
+  if (!appConfig.audioDir) {
+    return [];
+  }
+
+  const files = await getFiles(appConfig.audioDir);
+  const items = files.filter((i) => i.endsWith('.mp3')).map(createMusicData);
+  return Promise.all(items);
 };
 
 const music = { getList };

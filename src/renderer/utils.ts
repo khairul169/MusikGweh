@@ -1,4 +1,5 @@
 /* eslint-disable import/prefer-default-export */
+import { MusicData } from 'main/commands/music';
 
 export const arrayBufferBase64 = async (data?: Buffer, mimeType?: string) => {
   if (!data) {
@@ -18,4 +19,31 @@ export const arrayBufferBase64 = async (data?: Buffer, mimeType?: string) => {
     so we split off the beginning:
     */
   return `data:${mimeType || ''};base64,${base64url.split(',', 2)[1]}`;
+};
+
+export type TrackData = {
+  uri: string;
+  filename: string;
+  title: string;
+  cover?: string;
+};
+
+export const getAudioName = (music: MusicData) => {
+  return music.metadata?.common?.title || music.filename.replace('.mp3', '');
+};
+
+export const mapTrackData = async (music: MusicData) => {
+  const cover = music.metadata.common.picture?.[0];
+  const coverImg = await arrayBufferBase64(cover?.data, cover?.format);
+
+  return {
+    uri: music.uri,
+    filename: music.filename,
+    title: getAudioName(music),
+    cover: coverImg,
+  } as TrackData;
+};
+
+export const getFilename = (filepath: string) => {
+  return filepath.split('/').pop() || '';
 };

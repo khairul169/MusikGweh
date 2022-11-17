@@ -191,14 +191,15 @@
     "webpack-merge": "^5.8.0"
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "MusikGweh",
+    "appId": "id.my.khairul.musikgweh",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
       "dist",
       "node_modules",
-      "package.json"
+      "package.json",
+      "!config.json"
     ],
     "afterSign": ".erb/scripts/notarize.js",
     "mac": {

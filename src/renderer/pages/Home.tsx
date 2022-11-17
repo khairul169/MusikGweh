@@ -1,53 +1,58 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FaSearch, FaTimes } from 'react-icons/fa';
+import { FaSearch, FaTimes, FaMusic } from 'react-icons/fa';
 import AudioPlayer from 'react-h5-audio-player';
-import { MusicData } from 'main/commands/music';
-import { arrayBufferBase64 } from 'renderer/utils';
-
-type TrackData = {
-  uri: string;
-  title: string;
-  cover?: string;
-};
-
-const getAudioName = (music: MusicData) => {
-  return music.metadata?.common?.title || music.filename.replace('.mp3', '');
-};
+import { getFilename, mapTrackData, TrackData } from 'renderer/utils';
 
 const Home = () => {
-  const [musicList, setMusicList] = useState<MusicData[]>([]);
-  const [track, setTrack] = useState<TrackData>();
+  const [musicList, setMusicList] = useState<TrackData[]>([]);
+  const [track, setTrack] = useState<number>();
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    const getMusicList = async () => {
-      try {
-        const result = await window.app.music.getList();
-        setMusicList(result);
-      } catch (err) {
-        console.log('Failed fetching music list...', err);
-      }
-    };
+  const getMusicList = async () => {
+    try {
+      const result = await window.app.music.getList();
+      const items = await Promise.all(result.map(mapTrackData));
+      setMusicList(items);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.log('Failed fetching music list...', err);
+    }
+  };
 
+  useEffect(() => {
     getMusicList();
+    window.app.config.onAudioDirChange(getMusicList);
   }, []);
 
-  const onTrackSelect = async (music: MusicData) => {
-    const port = 1215;
-    const uri = `http://localhost:${port}/${music.filename}`;
-    const cover = music.metadata.common.picture?.[0];
-    const coverImg = await arrayBufferBase64(cover?.data, cover?.format);
-    setTrack({ uri, title: getAudioName(music), cover: coverImg });
+  const onTrackSelect = (idx: number) => {
+    setTrack(idx);
+  };
+
+  const onTrackPrev = () => {
+    if (track != null && track > 0) setTrack(track - 1);
+  };
+
+  const onTrackNext = () => {
+    if (track != null && track < musicList.length - 1) setTrack(track + 1);
   };
 
   const musicFiltered = useMemo(() => {
-    return musicList.filter((i) => {
-      const keyword = search.toLowerCase();
-      const filename = i.filename.toLowerCase();
-      const title = getAudioName(i);
-      return title.includes(keyword) || filename.includes(keyword);
-    });
+    return musicList
+      .map((i, index) => ({ ...i, index }))
+      .filter((i) => {
+        const keyword = search.toLowerCase();
+        const filename = i.filename.toLowerCase();
+        const title = i.title.toLowerCase();
+        return title.includes(keyword) || filename.includes(keyword);
+      })
+      .sort((a, b) => {
+        return getFilename(a.title).localeCompare(getFilename(b.title));
+      });
   }, [musicList, search]);
+
+  const currentTrack = useMemo(() => {
+    return track != null ? musicList[track] : null;
+  }, [musicList, track]);
 
   return (
     <div className="h-[100vh] flex flex-col overflow-hidden bg-slate-800 text-white">
@@ -74,31 +79,56 @@ const Home = () => {
           ) : null}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-5 pb-5">
+      <div className="flex-1 overflow-y-auto px-4 pb-5">
         {musicFiltered.map((music) => (
           <button
             type="button"
             key={music.filename}
-            className="text-left border-b border-slate-600 py-3 w-full hover:bg-slate-700 active:bg-slate-500 transition-colors"
-            onClick={() => onTrackSelect(music)}
+            className={[
+              'text-left border-b border-slate-600 w-full hover:bg-slate-700 active:bg-slate-500 transition-colors flex items-center py-2 my-1 rounded',
+              track === music.index ? 'bg-slate-600' : '',
+            ].join(' ')}
+            onClick={() => onTrackSelect(music.index)}
           >
-            {getAudioName(music)}
+            <div className="mx-2 h-10 w-10 rounded bg-slate-400 overflow-hidden flex items-center justify-center">
+              {music.cover ? (
+                <img
+                  src={music.cover}
+                  alt="cover"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <FaMusic />
+              )}
+            </div>
+            <p className="flex-1 truncate">{music.title}</p>
           </button>
         ))}
       </div>
 
       <div className="bg-slate-700 flex items-center shadow-xl">
-        {track?.cover ? (
-          <img src={track?.cover} alt="cover" className="w-[114px] ml-3" />
+        {currentTrack?.cover ? (
+          <img
+            src={currentTrack?.cover}
+            alt="cover"
+            className="w-[114px] ml-3"
+          />
         ) : null}
+
         <AudioPlayer
           autoPlay
-          src={track?.uri}
+          src={currentTrack?.uri}
           header={
             <div className="text-white">
-              <p className="mb-2 mt-3">{track?.title || '-'}</p>
+              <p className="mb-2 mt-3">{currentTrack?.title || '-'}</p>
             </div>
           }
+          showJumpControls={false}
+          showSkipControls
+          onClickPrevious={onTrackPrev}
+          onClickNext={onTrackNext}
+          onEnded={onTrackNext}
+          hasDefaultKeyBindings={false}
         />
       </div>
     </div>
