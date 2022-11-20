@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-button {
+  width: 0px;
+  height: 0px;
+}
+::-webkit-scrollbar-thumb {
+  background: #56649f;
+  border: 0px none #ffffff;
+  border-radius: 50px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #697abf;
+}
+::-webkit-scrollbar-thumb:active {
+  background: #46548b;
+}
+::-webkit-scrollbar-track {
+  background: #383f5c;
+  border: 0px none #ffffff;
+  border-radius: 50px;
+}
+::-webkit-scrollbar-track:hover {
+  background: #4f587d;
+}
+::-webkit-scrollbar-track:active {
+  background: #363f63;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* audio player */
+.rhap_container {
+  @apply bg-slate-700 px-5 py-3 shadow-none;
+}
+
+.rhap_time {
+  @apply text-white;
+}
+
+.rhap_volume-button,
+.rhap_repeat-button,
+.rhap_main-controls-button {
+  @apply text-white;
+}
+
+.rhap_progress-bar,
+.rhap_download-progress {
+  @apply bg-slate-300;
+}
+
+.rhap_progress-filled {
+  @apply bg-slate-400;
+}
+
+.rhap_progress-indicator {
+  @apply bg-slate-500;
+}
