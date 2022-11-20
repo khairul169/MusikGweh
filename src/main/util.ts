@@ -47,6 +47,17 @@ export const getFilename = (filepath: string) => {
   return filepath.split('/').pop() || '';
 };
 
+export const dec2hex = (dec: number) => {
+  return dec.toString(16).padStart(2, '0');
+};
+
+// generateId :: Integer -> String
+export const generateId = (len?: number) => {
+  const arr = new Uint8Array((len || 40) / 2);
+  window.crypto.getRandomValues(arr);
+  return Array.from(arr, dec2hex).join('');
+};
+
 export const slugify = (text: string, lowerCase = true) => {
   let str = text.replace(/^\s+|\s+$/g, '');
 
@@ -66,11 +77,16 @@ export const slugify = (text: string, lowerCase = true) => {
 
   // Remove invalid chars
   str = str
-    .replace(/[^A-Za-z0-9 -]/g, '')
+    // .replace(/[^A-Za-z0-9 -]/g, '')
+    .replace(/[\\/:"*?<>|]/g, '')
     // Collapse whitespace and replace by -
     .replace(/\s+/g, '-')
     // Collapse dashes
     .replace(/-+/g, '-');
+
+  if (!str.length) {
+    str = generateId(20);
+  }
 
   return str;
 };
