@@ -3,15 +3,7 @@ import { FaMusic } from 'react-icons/fa';
 import { useMusicPlayer } from 'renderer/context/MusicPlayerContext';
 
 const MusicPlayer = () => {
-  const { current, playlist, track, setTrack } = useMusicPlayer();
-
-  const onTrackPrev = () => {
-    if (track != null && track > 0) setTrack(track - 1);
-  };
-
-  const onTrackNext = () => {
-    if (track != null && track < playlist.length - 1) setTrack(track + 1);
-  };
+  const { current, prev, next } = useMusicPlayer();
 
   return (
     <div className="bg-slate-700 flex items-center shadow-xl">
@@ -37,9 +29,9 @@ const MusicPlayer = () => {
         }
         showJumpControls={false}
         showSkipControls
-        onClickPrevious={onTrackPrev}
-        onClickNext={onTrackNext}
-        onEnded={onTrackNext}
+        onClickPrevious={prev}
+        onClickNext={next}
+        onEnded={next}
         hasDefaultKeyBindings={false}
       />
     </div>
