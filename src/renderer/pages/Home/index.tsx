@@ -7,7 +7,7 @@ import {
   FaTrash,
   FaDownload,
 } from 'react-icons/fa';
-import { filterTrackList, mapTrackData, TrackData } from 'renderer/utils';
+import { getFilename, mapTrackData, TrackData } from 'renderer/utils';
 import MusicPlayer from 'renderer/components/MusicPlayer';
 import { useMusicPlayer } from 'renderer/context/MusicPlayerContext';
 import MenuButton from 'renderer/components/MenuButton';
@@ -46,8 +46,14 @@ const Home = () => {
     window.app.config.onAudioDirChange(getMusicList);
   }, []);
 
+  const playList = useMemo(() => {
+    return musicList.sort((a, b) => {
+      return getFilename(a.title).localeCompare(getFilename(b.title));
+    });
+  }, [musicList]);
+
   const onTrackSelect = (idx: number) => {
-    play(musicList, idx);
+    play(playList, idx);
   };
 
   const onDeleteTrack = async (trackData: TrackData) => {
@@ -57,10 +63,16 @@ const Home = () => {
     }
   };
 
-  const musicFiltered = useMemo(
-    () => filterTrackList(musicList, search),
-    [musicList, search]
-  );
+  const musicFiltered = useMemo(() => {
+    return playList
+      .map((i, index) => ({ ...i, index }))
+      .filter((i) => {
+        const keyword = search.toLowerCase();
+        const filename = i.filename.toLowerCase();
+        const title = i.title.toLowerCase();
+        return title.includes(keyword) || filename.includes(keyword);
+      });
+  }, [playList, search]);
 
   return (
     <div className="h-[100vh] flex flex-col overflow-hidden bg-slate-800 text-white">
