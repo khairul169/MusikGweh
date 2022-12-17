@@ -1,6 +1,6 @@
 {
   "name": "musikgweh",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Music Player made with Electron, ReactJs, & Nodejs using ytdl-core and ffmpeg.",
   "license": "MIT",
   "author": {
