@@ -1,4 +1,10 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { TrackData } from 'renderer/utils';
 
 type Props = {
@@ -49,7 +55,7 @@ const MusicPlayerProvider = ({ children }: Props) => {
     setTrack(trackIdx);
   };
 
-  const onTrackPrev = () => {
+  const onTrackPrev = useCallback(() => {
     if (track == null) {
       return;
     }
@@ -58,9 +64,9 @@ const MusicPlayerProvider = ({ children }: Props) => {
       newTrack = playlist.length - 1;
     }
     setTrack(newTrack);
-  };
+  }, [track, playlist]);
 
-  const onTrackNext = () => {
+  const onTrackNext = useCallback(() => {
     if (track == null) {
       return;
     }
@@ -72,11 +78,33 @@ const MusicPlayerProvider = ({ children }: Props) => {
       }
       setTrack(newTrack);
     }
-  };
+  }, [track, playlist, loop]);
 
   const currentTrack = useMemo(() => {
     return track != null ? playlist[track] : null;
   }, [playlist, track]);
+
+  useEffect(() => {
+    if (!currentTrack) {
+      return;
+    }
+
+    // console.log(currentTrack);
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentTrack.title,
+      // artist: 'Artist',
+      // album: 'Album',
+      artwork: currentTrack.cover
+        ? [{ src: currentTrack.cover, sizes: '512x512', type: 'image/png' }]
+        : [],
+    });
+  }, [currentTrack]);
+
+  useEffect(() => {
+    navigator.mediaSession.setActionHandler('previoustrack', onTrackPrev);
+    navigator.mediaSession.setActionHandler('nexttrack', onTrackNext);
+  }, [onTrackPrev, onTrackNext]);
 
   const value: ContextValue = {
     playlist,
